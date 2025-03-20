@@ -1,0 +1,33 @@
+name: Deploy Liquibase Changes to PostgreSQL
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run Liquibase Update with Maven
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          mvn liquibase:update \
+              -Dliquibase.url="$DB_URL" \
+              -Dliquibase.username="$DB_USERNAME" \
+              -Dliquibase.password="$DB_PASSWORD" \
+              -Dliquibase.changeLogFile="db/changelog/db.changelog-master.xml" \
+              -Dliquibase.driver="org.postgresql.Driver"
